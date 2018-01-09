@@ -1,0 +1,27 @@
+{
+  "name": "webrtc-demo-broadcast",
+  "version": "0.0.1",
+  "author": {
+    "name": "Bogdan Medvedev",
+    "email": "www.clsa.ru@gmail.com"
+  },
+  "description": "WebRTC broadcasting demo.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "main": "./server.js",
+  "keywords": [
+    "webrtc",
+    "broadcast",
+    "broadcast",
+    "webrtc"
+  ],
+  "license": "",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "socket.io": "0.9.x"
+  },
+  "bugs": {
+    "email": "www.clsa.ru@gmail.com"
+  }
+}
