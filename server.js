@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require('path');
-var static_file = require('node-static');
-var file = new static_file.Server('./www');
+// const fs = require("fs");
+// const path = require('path');
+const static_file = require('node-static');
+const fileServer = new static_file.Server('./www');
 let app = require('http').createServer((request, response) => {
     request.addListener('end', function () {
         fileServer.serve(request, response);
