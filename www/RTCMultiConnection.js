@@ -1,19 +1,5 @@
 // Last time updated at Sep 21, 2015, 08:32:23
 
-// Quick-Demo for newbies: http://jsfiddle.net/c46de0L8/
-// Another simple demo: http://jsfiddle.net/zar6fg60/
-
-// Latest file can be found here: https://cdn.webrtc-experiment.com/RTCMultiConnection.js
-
-// Muaz Khan     - www.MuazKhan.com
-// MIT License   - www.WebRTC-Experiment.com/licence
-// Documentation - www.RTCMultiConnection.org/docs
-// FAQ           - www.RTCMultiConnection.org/FAQ
-// Changes log   - www.RTCMultiConnection.org/changes-log/
-// Demos         - www.WebRTC-Experiment.com/RTCMultiConnection
-
-// _________________________
-// RTCMultiConnection-v2.2.2
 
 (function() {
 
@@ -5372,19 +5358,17 @@
         });
 
         iceServers.push({
+            url: 'stun1.l.google.com:19302'
+        });
+
+        iceServers.push({
             url: 'stun:stun.anyfirewall.com:3478'
         });
 
         iceServers.push({
-            url: 'turn:turn.bistri.com:80',
-            credential: 'homeo',
-            username: 'homeo'
-        });
-
-        iceServers.push({
-            url: 'turn:turn.anyfirewall.com:443?transport=tcp',
-            credential: 'webrtc',
-            username: 'webrtc'
+            url: 'turn:numb.viagenie.ca',
+            credential: '9216009Bbb',
+            username: 'www.clsa.ru@gmail.com'
         });
 
         connection.iceServers = iceServers;
