@@ -15,9 +15,15 @@ let app = require('http').createServer((request, response) => {
         response.end();
         return false;
     }
+
+    let head = undefined;
+
     if (fs.statSync(filename).isDirectory()) {
         if (!isWin) filename += '/index.html';
         else filename += '\\index.html';
+        head = {
+            "Content-Type": "text/html"
+        }
     }
 
     fs.exists(filename, (exists) => {
@@ -39,8 +45,7 @@ let app = require('http').createServer((request, response) => {
                 response.end();
                 return false;
             }
-
-            response.writeHead(200);
+            response.writeHead(200, head);
             response.write(file, 'binary');
             response.end();
             return true;
