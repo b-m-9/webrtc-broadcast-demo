@@ -5358,7 +5358,7 @@
         });
 
         iceServers.push({
-            url: 'stun1.l.google.com:19302'
+            url: 'stun:stun1.l.google.com:19302'
         });
 
         iceServers.push({
