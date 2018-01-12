@@ -44,6 +44,16 @@ function originIsAllowed(origin) {
 }
 
 let listOfBroadcasts = {};
+wsServer.clients = [];
+wsServer.broadcast = function broadcast(data) {
+    console.log(wsServer.clients);
+    wsServer.clients.forEach(client =>{
+        if (client.readyState === WebSocketServer.OPEN) {
+            client.send(data);
+        }
+    });
+};
+
 wsServer.on('request', function (request) {
     if (!originIsAllowed(request.origin)) {
         // Make sure we only accept requests from an allowed origin
@@ -52,7 +62,7 @@ wsServer.on('request', function (request) {
         return;
     }
     let connection = request.accept(null, request.origin);
-
+    wsServer.clients.push(connection);
     let currentUser;
 
     console.log((new Date()) + ' Connection accepted.');
@@ -63,7 +73,7 @@ wsServer.on('request', function (request) {
 
                 switch (res.method) {
                     case 'join-broadcast':
-                        let user = res.user;
+                        let user = res.data;
                         currentUser = user;
 
                         user.numberOfViewers = 0;
@@ -111,11 +121,7 @@ wsServer.on('request', function (request) {
                         break;
                     case 'message':
 
-                        wsServer.clients.forEach(function each(client) {
-                            if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({method:'message',data:[res.data]}));
-                            }
-                        });
+                        wsServer.broadcast(JSON.stringify({method:'message',data:[res.data]}));
                         break;
                 }
 

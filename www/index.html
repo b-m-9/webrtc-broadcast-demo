@@ -87,7 +87,7 @@
             if (config.onopen) setTimeout(config.onopen, 1000);
             return {
                 send: function (message) {
-                    socket.send(JSON.parse({
+                    socket.send(JSON.stringify({
                         method: 'message', data: {
                             sender: connection.userid,
                             channel: channel,
@@ -166,7 +166,7 @@
             oneway: true
         };
 
-        socket.send(JSON.parse({
+        socket.send(JSON.stringify({
             method: 'join-broadcast', data: {
                 broadcastid: broadcastid,
                 userid: connection.userid,
