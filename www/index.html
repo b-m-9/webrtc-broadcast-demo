@@ -16,19 +16,60 @@
         width: 300px;
     }
 </style>
-<script src="lib_socket.io.js?version=2.0.4"></script>
 <script src="RTCMultiConnection.js"></script>
 <script>
-    var socket = io.connect();
+    var methods = {};
+
+    var socket = new WebSocket("ws://localhost:3000/");
+
+    socket.onopen = function () {
+        console.log("WS connected.");
+    };
+    socket.onclose = function (event) {
+        if (event.wasClean) {
+            console.log('Close wasClean ws connection: ', 'Code: ' + event.code + ' reason: ' + event.reason);
+        } else {
+            console.error('Error socket connect.', 'Code: ' + event.code + ' reason: ' + event.reason);
+        }
+    };
+
+    socket.onmessage = function (event) {
+        console.log("recived data:" + event.data);
+        try {
+            var res = JSON.parse(event.data);
+            switch (res.method) {
+                case 'join-broadcaster':
+                    if (methods['join-broadcaster'])
+                        methods['join-broadcaster'](res.data[0], res.data[1]);
+                    break;
+                case 'message':
+                    if (methods['message'])
+                        methods['message'](res.data[0]);
+                    break;
+                case 'start-broadcasting':
+                    if (methods['start-broadcasting'])
+                        methods['start-broadcasting'](res.data[0]);
+                    break;
+            }
+
+        } catch (e) {
+            console.error('error data ws:', e, event.data)
+        }
+    };
+
+    socket.onerror = function (error) {
+        console.error("Error ws: " + error.message);
+    };
+    // var socket = io.connect();
 
     // using single socket for RTCMultiConnection signaling
     var onMessageCallbacks = {};
-    socket.on('message', function (data) {
+    methods['message'] = function (data) {
         if (data.sender === connection.userid) return;
         if (onMessageCallbacks[data.channel])
             onMessageCallbacks[data.channel](data.message);
 
-    });
+    };
 
     // initializing RTCMultiConnection constructor.
     function initRTCMultiConnection(userid) {
@@ -46,11 +87,13 @@
             if (config.onopen) setTimeout(config.onopen, 1000);
             return {
                 send: function (message) {
-                    socket.emit('message', {
-                        sender: connection.userid,
-                        channel: channel,
-                        message: message
-                    });
+                    socket.send(JSON.parse({
+                        method: 'message', data: {
+                            sender: connection.userid,
+                            channel: channel,
+                            message: message
+                        }
+                    }));
                 },
                 channel: channel
             };
@@ -123,15 +166,17 @@
             oneway: true
         };
 
-        socket.emit('join-broadcast', {
-            broadcastid: broadcastid,
-            userid: connection.userid,
-            typeOfStreams: connection.session
-        });
+        socket.send(JSON.parse({
+            method: 'join-broadcast', data: {
+                broadcastid: broadcastid,
+                userid: connection.userid,
+                typeOfStreams: connection.session
+            }
+        }));
     };
 
     // this event is emitted when a broadcast is already created.
-    socket.on('join-broadcaster', function (broadcaster, typeOfStreams) {
+    methods['join-broadcaster'] = function (broadcaster, typeOfStreams) {
         connection.session = typeOfStreams;
         connection.channel = connection.sessionid = broadcaster.userid;
 
@@ -146,10 +191,10 @@
             extra: {},
             session: connection.session
         });
-    });
+    };
 
     // this event is emitted when a broadcast is absent.
-    socket.on('start-broadcasting', function (typeOfStreams) {
+    methods['start-broadcasting'] = function (typeOfStreams) {
         // host i.e. sender should always use this!
         connection.sdpConstraints.mandatory = {
             OfferToReceiveVideo: false,
@@ -165,7 +210,7 @@
             connection.broadcastingConnection.close();
             connection.broadcastingConnection = null;
         }
-    });
+    };
 
     window.onbeforeunload = function () {
         // Firefox is weird!
