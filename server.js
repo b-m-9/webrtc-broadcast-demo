@@ -13,7 +13,6 @@ app = app.listen(process.env.PORT || 8888, process.env.IP || "0.0.0.0", () => {
     console.log("Server listening at", addr.address + ":" + addr.port);
 });
 
-// require('./SocketServer.js')(app);
 
 
 var WebSocketServer = require('websocket').server;
@@ -47,7 +46,7 @@ let listOfBroadcasts = {};
 wsServer.clients = [];
 wsServer.broadcast = function broadcast(data) {
     console.log(wsServer.clients);
-    wsServer.clients.forEach(client =>{
+    wsServer.clients.forEach(client => {
         if (client.readyState === WebSocketServer.OPEN) {
             client.send(data);
         }
@@ -62,7 +61,9 @@ wsServer.on('request', function (request) {
         return;
     }
     let connection = request.accept(null, request.origin);
+    connection.token = new Date().getTime();
     wsServer.clients.push(connection);
+
     let currentUser;
 
     console.log((new Date()) + ' Connection accepted.');
@@ -121,7 +122,7 @@ wsServer.on('request', function (request) {
                         break;
                     case 'message':
 
-                        wsServer.broadcast(JSON.stringify({method:'message',data:[res.data]}));
+                        wsServer.broadcast(JSON.stringify({method: 'message', data: [res.data]}));
                         break;
                 }
 
@@ -131,15 +132,17 @@ wsServer.on('request', function (request) {
             }
 
 
-
             console.log('Received Message: ' + message.utf8Data);
             // connection.sendUTF(message.utf8Data);
         }
     });
 
 
-    connection.on('close', function (reasonCode, description) {
+    connection.on('close', () => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        for (let i in wsServer.clients) {
+            if (wsServer.clients[i].token === connection.token) wsServer.clients.splice(i, 1);
+        }
         if (
             !currentUser ||
             !listOfBroadcasts[currentUser.broadcastid] ||
@@ -149,5 +152,6 @@ wsServer.on('request', function (request) {
         delete listOfBroadcasts[currentUser.broadcastid].broadcasters[currentUser.userid];
         if (currentUser.isInitiator)
             delete listOfBroadcasts[currentUser.broadcastid];
+
     });
 });
