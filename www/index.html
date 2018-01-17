@@ -7,7 +7,8 @@
 </head>
 
 <body>
-<input type="text" id="broadcast-id" placeholder="broadcast-id" value="room1">
+<input type="text" id="broadcast-id" placeholder="broadcast-id" value="65278edbaed24ffef159666f044fd6b27c031f33">
+<input type="text" id="broadcast-type" placeholder="broadcast-type" value="stream">
 <button id="open-or-join">Open or Join Broadcast</button>
 <hr>
 <div id="videos-container"></div>
@@ -20,7 +21,7 @@
 <script>
     var methods = {};
 
-    var socket = new WebSocket("ws://localhost:3000/");
+    var socket = new WebSocket("ws://localhost:3002/");
 
     socket.onopen = function () {
         console.log("WS connected.");
@@ -38,17 +39,17 @@
         try {
             var res = JSON.parse(event.data);
             switch (res.method) {
-                case 'join-broadcaster':
-                    if (methods['join-broadcaster'])
-                        methods['join-broadcaster'](res.data[0], res.data[1]);
+                case 'joinBroadcaster':
+                    if (methods['joinBroadcaster'])
+                        methods['joinBroadcaster'](res.data[0], res.data[1]);
                     break;
-                case 'message':
-                    if (methods['message'])
-                        methods['message'](res.data[0]);
+                case 'videoMessage':
+                    if (methods['videoMessage'])
+                        methods['videoMessage'](res.data[0]);
                     break;
-                case 'start-broadcasting':
-                    if (methods['start-broadcasting'])
-                        methods['start-broadcasting'](res.data[0]);
+                case 'startBroadcasting':
+                    if (methods['startBroadcasting'])
+                        methods['startBroadcasting'](res.data[0]);
                     break;
             }
 
@@ -64,7 +65,7 @@
 
     // using single socket for RTCMultiConnection signaling
     var onMessageCallbacks = {};
-    methods['message'] = function (data) {
+    methods['videoMessage'] = function (data) {
         if (data.sender === connection.userid) return;
         if (onMessageCallbacks[data.channel])
             onMessageCallbacks[data.channel](data.message);
@@ -88,7 +89,7 @@
             return {
                 send: function (message) {
                     socket.send(JSON.stringify({
-                        method: 'message', data: {
+                        method: 'videoMessage', data: {
                             sender: connection.userid,
                             channel: channel,
                             message: message
@@ -151,6 +152,7 @@
     // if broadcast is absent, simply create it. i.e. "start-broadcasting" event should be fired.
     document.getElementById('open-or-join').onclick = function () {
         var broadcastid = document.getElementById('broadcast-id').value;
+        var broadcasttype = document.getElementById('broadcast-type').value;
         if (broadcastid.replace(/^\s+|\s+$/g, '').length <= 0) {
             alert('Please enter broadcast-id');
             document.getElementById('broadcast-id').focus();
@@ -167,16 +169,17 @@
         };
 
         socket.send(JSON.stringify({
-            method: 'join-broadcast', data: {
+            method: 'joinBroadcast', data: {
                 broadcastid: broadcastid,
                 userid: connection.userid,
+                type: broadcasttype,
                 typeOfStreams: connection.session
             }
         }));
     };
 
     // this event is emitted when a broadcast is already created.
-    methods['join-broadcaster'] = function (broadcaster, typeOfStreams) {
+    methods['joinBroadcaster'] = function (broadcaster, typeOfStreams) {
         connection.session = typeOfStreams;
         connection.channel = connection.sessionid = broadcaster.userid;
 
@@ -194,7 +197,7 @@
     };
 
     // this event is emitted when a broadcast is absent.
-    methods['start-broadcasting'] = function (typeOfStreams) {
+    methods['startBroadcasting'] = function (typeOfStreams) {
         // host i.e. sender should always use this!
         connection.sdpConstraints.mandatory = {
             OfferToReceiveVideo: false,

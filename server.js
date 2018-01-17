@@ -23,7 +23,7 @@ var server = http.createServer(function (request, response) {
     response.writeHead(404);
     response.end();
 });
-server.listen(3000, function () {
+server.listen(3030, function () {
     console.log((new Date()) + ' Server is listening on port ws:3000');
 });
 
@@ -73,7 +73,7 @@ wsServer.on('request', function (request) {
                 let res = JSON.parse(message.utf8Data);
 
                 switch (res.method) {
-                    case 'join-broadcast':
+                    case 'joinBroadcast':
                         let user = res.data;
                         currentUser = user;
 
@@ -102,7 +102,7 @@ wsServer.on('request', function (request) {
                         if (firstAvailableBroadcaster) {
                             listOfBroadcasts[user.broadcastid].broadcasters[firstAvailableBroadcaster.userid].numberOfViewers++;
                             connection.sendUTF(JSON.stringify({
-                                method: 'join-broadcaster',
+                                method: 'joinBroadcaster',
                                 data: [firstAvailableBroadcaster, listOfBroadcasts[user.broadcastid].typeOfStreams]
                             }));
 
@@ -110,7 +110,7 @@ wsServer.on('request', function (request) {
                         } else {
                             currentUser.isInitiator = true;
                             connection.sendUTF(JSON.stringify({
-                                method: 'start-broadcasting',
+                                method: 'startBroadcasting',
                                 data: [listOfBroadcasts[user.broadcastid].typeOfStreams]
                             }));
 
@@ -120,9 +120,9 @@ wsServer.on('request', function (request) {
                         listOfBroadcasts[user.broadcastid].broadcasters[user.userid] = user;
                         listOfBroadcasts[user.broadcastid].allusers[user.userid] = user;
                         break;
-                    case 'message':
+                    case 'videoMessage':
 
-                        wsServer.broadcast(JSON.stringify({method: 'message', data: [res.data]}));
+                        wsServer.broadcast(JSON.stringify({method: 'videoMessage', data: [res.data]}));
                         break;
                 }
 
